@@ -4,11 +4,10 @@ import api.User;
 import config.TestConfig;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.log4j.Log4j2;
+import org.junit.Assert;
 import service.UserService;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static context.RunContext.RUN_CONTEXT;
 import static io.restassured.RestAssured.given;
@@ -36,5 +35,25 @@ public class UserServiceImpl implements UserService {
         }
 
         return users;
+    }
+
+    @Override
+    public String regUser(String email, String password) {
+        String URL = testConfig.getRegUrl();
+
+        Map<String, Object> creds = new HashMap<>();
+        creds.put("email", email);
+        creds.put("password", password);
+
+        ValidatableResponse r = given()
+                .contentType("application/json")
+                .body(creds)
+                .when()
+                .post(URL)
+                .then().log().ifError();
+
+        RUN_CONTEXT.put("response", r);
+
+        return r.extract().body().jsonPath().getString("token");
     }
 }
